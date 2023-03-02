@@ -16,7 +16,13 @@ const socketHelpers = require('../socket.io/helpers');
 const topicsAPI = module.exports;
 
 topicsAPI.get = async function (caller, data) {
-    const [userPrivileges, topic] = await Promise.all([
+    conpostsAPI.resolve = async function (caller, data) {
+    return await apiHelpers.postCommand(caller, 'resolve', 'resolved', '', data);
+};
+
+postsAPI.unresolve = async function (caller, data) {
+    return await apiHelpers.postCommand(caller, 'unresolve', 'resolved', '', data);
+};st [userPrivileges, topic] = await Promise.all([
         privileges.topics.get(data.tid, caller.uid),
         topics.getTopicData(data.tid),
     ]);
