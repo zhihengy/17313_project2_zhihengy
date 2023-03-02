@@ -1,4 +1,3 @@
-'use strict';
 import db from '../database';
 import plugins from '../plugins';
 
@@ -12,13 +11,7 @@ interface PostObject {
 }
 
 export = function (Posts:PostObject) {
-
-    Posts.resolve = async function (pid:number, uid:string) {
-        return await toggleResolve('resolve', pid, uid);
-    };
-    Posts.unresolve = async function (pid:number, uid:string) {
-        return await toggleResolve('unresolve', pid, uid);
-    };
+    console.log('print togggggggle resolve')
     async function toggleResolve(type:string, pid:number, uid:string) {
         if (parseInt(uid, 10) <= 0) {
             throw new Error('[[error:not-logged-in]]');
@@ -45,7 +38,7 @@ export = function (Posts:PostObject) {
             await db.sortedSetRemove(`uid:${uid}:resolve`, pid);
         }
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        await db[isResolving ? 'setAdd' : 'setRemove'](`pid:${pid}:users_resolved`, uid);
+        await db[isResolving ? 'setAdd' : 'setRemove'](`pid:${pid}:users_bresolved`, uid);
         await plugins.hooks.fire(`action:post.${type}`, {
             pid: pid,
             uid: uid,
@@ -58,6 +51,13 @@ export = function (Posts:PostObject) {
         };
     }
 
+    Posts.resolve = async function (pid:number, uid:string) {
+        return await toggleResolve('resolve', pid, uid);
+    };
+    Posts.unresolve = async function (pid:number, uid:string) {
+        return toggleResolve('unresolve', pid, uid);
+    };
+
     Posts.hasResolved = async function (pid:number | number[], uid:string) {
         if (parseInt(uid, 10) <= 0) {
             return Array.isArray(pid) ? pid.map(() => false) : false;
@@ -66,12 +66,14 @@ export = function (Posts:PostObject) {
         if (Array.isArray(pid)) {
             const sets = pid.map(pid => `pid:${pid}:users_resolved`);
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            const returnBool:boolean = await db.isMemberOfSets(sets, uid) as boolean;
+            const returnBool:boolean = db.isMemberOfSets(sets, uid) as boolean;
             return returnBool;
         }
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         
-        const returnVal:boolean = await db.isSetMember(`pid:${pid}:users_resolved`, uid) as boolean;
+        const returnVal:boolean = db.isSetMember(`pid:${pid}:users_resolved`, uid) as boolean;
+        console.log('ahhhhhhhhhhhhhhhhhhhhhhhhhhh')
+        console.log(typeof Posts.hasResolved);
         return returnVal;
     };
 }
